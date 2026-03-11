@@ -68,7 +68,7 @@ class _ChocoSolarSystemScreenState extends State<ChocoSolarSystemScreen>
                 alignment: Alignment.center, // El centro es el origen (0.0)
                 children: [
 
-                /*  // 🥛 LAS ESTRELLAS DE LECHE (Fondo profundo)
+                 // 🥛 LAS ESTRELLAS DE LECHE (Fondo profundo)
                    CustomPaint(
                     painter: ChocoEstrellasPainter(),
                   ),
@@ -79,7 +79,7 @@ class _ChocoSolarSystemScreenState extends State<ChocoSolarSystemScreen>
                       painter: ChocoOrbitPainter(
                         cantidadPlanetas: widget.planets!.bodies.length,
                       ),
-                    ),*/
+                    ),
                   // ✨ LA CORONA SOLAR (Luz de fondo)
                   // Este contenedor es gigante pero casi transparente, creando el brillo
                   Container(
