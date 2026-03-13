@@ -29,6 +29,7 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
       _avisarCuandoCargue();
     }
 
+<<<<<<< HEAD
     // 🚀 NUEVO: Le decimos a Flutter que espere a dibujar la pantalla
     // y luego lance el escáner de versiones.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -41,6 +42,23 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
   void _escanearVersion() async {
     final nuevaVersion = await VersionService.checkUpdate();
 
+=======
+    // 🚀 NUEVO: Le decimos a Flutter que espere a dibujar la pantalla 
+    // y luego lance el escáner de versiones.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _escanearVersion();
+        //_mostrarPopUpActualizacion({'release_notes': 'Mensaje de prueba para ver el diseño.'});
+    
+    });
+
+  }
+
+  
+  // 📡 Función que llama al servicio
+  void _escanearVersion() async {
+    final nuevaVersion = await VersionService.checkUpdate();
+    
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
     if (nuevaVersion != null && mounted) {
       // ¡BINGO! Hay una nueva versión en GitHub
       _mostrarPopUpActualizacion(nuevaVersion);
@@ -51,17 +69,25 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
   void _mostrarPopUpActualizacion(Map<String, dynamic> data) {
     showDialog(
       context: context,
+<<<<<<< HEAD
       barrierDismissible:
           false, // false = No puede cerrarlo tocando afuera, debe leerlo.
+=======
+      barrierDismissible: false, // false = No puede cerrarlo tocando afuera, debe leerlo.
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E1E2C), // Fondo espacial
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
+<<<<<<< HEAD
             side: const BorderSide(
               color: Color(0xFFCD7F32),
               width: 1.5,
             ), // Borde caramelo
+=======
+            side: const BorderSide(color: Color(0xFFCD7F32), width: 1.5), // Borde caramelo
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
           ),
           title: const Row(
             children: [
@@ -70,32 +96,45 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
               Expanded(
                 child: Text(
                   '¡Alerta de Sistema!',
+<<<<<<< HEAD
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
+=======
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
                 ),
               ),
             ],
           ),
           content: Text(
+<<<<<<< HEAD
             data['release_notes'] ??
                 'Hay una nueva versión del universo disponible. 🌌',
+=======
+            data['release_notes'] ?? 'Hay una nueva versión del universo disponible. 🌌',
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
             style: const TextStyle(color: Colors.white70, fontSize: 16.0),
           ),
           actions: [
             // Botón de "Más tarde" (Opcional, pero de buen UX)
             TextButton(
               onPressed: () => Navigator.pop(context),
+<<<<<<< HEAD
               child: const Text(
                 'Más tarde',
                 style: TextStyle(color: Colors.grey),
               ),
+=======
+              child: const Text('Más tarde', style: TextStyle(color: Colors.grey)),
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
             ),
             // Botón de "Actualizar"
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFCD7F32), // Color Caramelo
+<<<<<<< HEAD
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -103,6 +142,13 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
               onPressed: () {
                 Navigator.pop(context);
                 // 🚀 Aquí en el futuro puedes poner el código (url_launcher)
+=======
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                // 🚀 Aquí en el futuro puedes poner el código (url_launcher) 
+>>>>>>> c9216061f45c7f1aca484c67e8a363723dc8beaf
                 // para que la lleve al link de descarga (data['update_url']).
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
