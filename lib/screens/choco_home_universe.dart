@@ -29,21 +29,18 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
       _avisarCuandoCargue();
     }
 
-    // 🚀 NUEVO: Le decimos a Flutter que espere a dibujar la pantalla 
+    // 🚀 NUEVO: Le decimos a Flutter que espere a dibujar la pantalla
     // y luego lance el escáner de versiones.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _escanearVersion();
-        //_mostrarPopUpActualizacion({'release_notes': 'Mensaje de prueba para ver el diseño.'});
-    
+      //_mostrarPopUpActualizacion({'release_notes': 'Mensaje de prueba para ver el diseño.'});
     });
-
   }
 
-  
   // 📡 Función que llama al servicio
   void _escanearVersion() async {
     final nuevaVersion = await VersionService.checkUpdate();
-    
+
     if (nuevaVersion != null && mounted) {
       // ¡BINGO! Hay una nueva versión en GitHub
       _mostrarPopUpActualizacion(nuevaVersion);
@@ -54,13 +51,17 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
   void _mostrarPopUpActualizacion(Map<String, dynamic> data) {
     showDialog(
       context: context,
-      barrierDismissible: false, // false = No puede cerrarlo tocando afuera, debe leerlo.
+      barrierDismissible:
+          false, // false = No puede cerrarlo tocando afuera, debe leerlo.
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E1E2C), // Fondo espacial
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
-            side: const BorderSide(color: Color(0xFFCD7F32), width: 1.5), // Borde caramelo
+            side: const BorderSide(
+              color: Color(0xFFCD7F32),
+              width: 1.5,
+            ), // Borde caramelo
           ),
           title: const Row(
             children: [
@@ -69,30 +70,39 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
               Expanded(
                 child: Text(
                   '¡Alerta de Sistema!',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
           ),
           content: Text(
-            data['release_notes'] ?? 'Hay una nueva versión del universo disponible. 🌌',
+            data['release_notes'] ??
+                'Hay una nueva versión del universo disponible. 🌌',
             style: const TextStyle(color: Colors.white70, fontSize: 16.0),
           ),
           actions: [
             // Botón de "Más tarde" (Opcional, pero de buen UX)
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Más tarde', style: TextStyle(color: Colors.grey)),
+              child: const Text(
+                'Más tarde',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             // Botón de "Actualizar"
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFCD7F32), // Color Caramelo
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: () {
                 Navigator.pop(context);
-                // 🚀 Aquí en el futuro puedes poner el código (url_launcher) 
+                // 🚀 Aquí en el futuro puedes poner el código (url_launcher)
                 // para que la lleve al link de descarga (data['update_url']).
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -103,7 +113,10 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
               },
               child: const Text(
                 'Actualizar Ahora',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -199,8 +212,16 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
                             fit: BoxFit.contain,
                           ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            FaIcon(Icons.satellite_alt),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.black,
+                          child: const Center(
+                            child: Icon(
+                              Icons.satellite_alt,
+                              color: Colors.white,
+                              size: 50,
+                            ),
+                          ),
+                        ),
                       ),
                     )
                   : Container(
@@ -218,7 +239,7 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
-              child: ChocoSolarSystemScreen(planets: widget.planets,),
+              child: ChocoSolarSystemScreen(planets: widget.planets),
             ),
           ),
         ],

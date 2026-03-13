@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choco_universe/models/choco_imagen_deldia_model.dart';
 import 'package:translator/translator.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ class _ChocoPageViewScreenState extends State<ChocoPageViewScreen> {
   // Variables de nuestra nave
   bool _esVertical = true; // Por defecto asumimos que es vertical
   bool _escaneando = true; // Mientras el radar hace su trabajo
+  bool _errorImagen = false; // 👈 NUEVA: Nuestro detector de caidas de imagenes
   // Variable para saber en qué página estamos (0 es la primera, 1 es la segunda)
   int _paginaActual = 0;
 
@@ -29,25 +31,32 @@ class _ChocoPageViewScreenState extends State<ChocoPageViewScreen> {
   //Función para girar en vertical cualquier imagen que venga horizontal desde la API de la NASA
 
   void _analizarFormaDeImagen() {
-    final proveedorImagen = NetworkImage(widget.image.url);
+    // Usamos CachedNetworkImageProvider para que use el mismo caché que el Home
+    final proveedorImagen = CachedNetworkImageProvider(widget.image.url);
 
-    // Disparamos el radar
     proveedorImagen
         .resolve(const ImageConfiguration())
         .addListener(
-          ImageStreamListener((ImageInfo info, bool _) {
-            final ancho = info.image.width;
-            final alto = info.image.height;
-
-            // Un detalle de Arquitecto Senior: 'mounted' verifica que el usuario
-            // no se haya salido de la pantalla mientras el radar pensaba.
-            if (mounted) {
-              setState(() {
-                _esVertical = alto >= ancho; // Evaluamos quién gana
-                _escaneando = false; // Apagamos el radar
-              });
-            }
-          }),
+          ImageStreamListener(
+            (ImageInfo info, bool _) {
+              if (mounted) {
+                setState(() {
+                  _esVertical = info.image.height >= info.image.width;
+                  _escaneando = false;
+                });
+              }
+            },
+            // 🚨 EL SALVAVIDAS: Si la URL está rota, entramos aquí
+            onError: (dynamic error, StackTrace? stackTrace) {
+              if (mounted) {
+                setState(() {
+                  _errorImagen = true; // Marcamos que hubo un fallo
+                  _escaneando =
+                      false; // ¡Apagamos el radar para que no se congele!
+                });
+              }
+            },
+          ),
         );
   }
 
@@ -102,22 +111,26 @@ class _ChocoPageViewScreenState extends State<ChocoPageViewScreen> {
                 // Si el radar sigue escaneando, mostramos un circulo de carga
                 child: _escaneando
                     ? const CircularProgressIndicator(color: Colors.white)
-                    // Si ya terminó, evaluamos la forma de la foto
+                    // 2. ¿Hubo un error con la URL? ¡Mostramos el Satélite!
+                    : _errorImagen
+                    ? const Icon(
+                        Icons.satellite_alt,
+                        color: Colors.white54,
+                        size: 100, // Un satélite bien grande
+                      )
+                    // 3. ¿Todo bien? Evaluamos si es vertical u horizontal
                     : _esVertical
-                    // ¿Es vertical? La dibujamos normal y pacíficamente.
-                    ? Image.network(
-                        widget
-                            .image
-                            .url, //Usamos la imagen que nos llega por el constructor.
+                    ? CachedNetworkImage(
+                        // 👈 Usamos CachedNetworkImage
+                        imageUrl: widget.image.url,
                         fit: BoxFit.contain,
                       )
-                    // ¿Es horizontal? ¡La encerramos en el RotatedBox y la giramos!
                     : RotatedBox(
-                        quarterTurns: 1, // 1 cuarto de vuelta (90 grados)
-                        child: Image.network(
-                          widget.image.url,
-                          fit: BoxFit
-                              .contain, // Se ajustará perfecto estando acostada
+                        quarterTurns: 1,
+                        child: CachedNetworkImage(
+                          // 👈 Usamos CachedNetworkImage
+                          imageUrl: widget.image.url,
+                          fit: BoxFit.contain,
                         ),
                       ),
               ),

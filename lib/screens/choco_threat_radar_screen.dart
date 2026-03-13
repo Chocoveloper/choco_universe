@@ -1,74 +1,52 @@
 import 'package:choco_universe/models/choco_neo_radar_model.dart';
-import 'package:choco_universe/services/choco_service_http.dart';
 import 'package:flutter/material.dart';
 
 
 class ThreatRadarScreen extends StatefulWidget {
-  const ThreatRadarScreen({super.key});
+
+  // 🎒 La maleta donde recibiremos solo los visibles
+  final List<Asteroid> asteroidesFiltrados;
+
+  const ThreatRadarScreen({super.key, required this.asteroidesFiltrados});
 
   @override
   State<ThreatRadarScreen> createState() => _ThreatRadarScreenState();
 }
 
 class _ThreatRadarScreenState extends State<ThreatRadarScreen> {
-  // 1. Declaramos nuestro "vigilante" del futuro.
-  // Lo hacemos aquí para que la NASA solo se llame UNA VEZ al abrir la pantalla.
-  late Future<NeoRadarResponse?> _radarFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    // 2. Disparamos la petición a la NASA apenas entramos a la pantalla
-    // (Asegúrate de instanciar tu servicio. Asumo que creaste una clase llamada NeoService)
-    _radarFuture = getNeoRadarInfoDio();
-  }
+  
 
   @override
   Widget build(BuildContext context) {
+
+    final listaAsteroides = widget.asteroidesFiltrados;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0D17), // Nuestro fondo espacial profundo
+      backgroundColor: const Color(0xFF0B0D17), 
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Barra transparente
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'RADAR DE AMENAZAS ☄️',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.5),
         ),
-        iconTheme: const IconThemeData(color: Colors.white), // Flecha de retroceso blanca
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       
-      // 📡 EL CORAZÓN DEL RADAR: El FutureBuilder
-      body: FutureBuilder<NeoRadarResponse?>(
-        future: _radarFuture,
-        builder: (context, snapshot) {
-          
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFCD7F32)));
-          }
-
-          if (snapshot.hasError || snapshot.data == null) {
-            return const Center(child: Text('Error en el radar 📡', style: TextStyle(color: Colors.white)));
-          }
-
-          final listaAsteroides = snapshot.data!.asteroides;
-
-          // 🛡️ AQUÍ ESTÁ EL CAMBIO: La columna que organiza todo
-          return Column(
+      // 📡 YA NO HAY FutureBuilder. Dibujamos de una vez:
+      body: listaAsteroides.isEmpty 
+        ? _buildEmptySector() // Un mensaje por si no hay nada en 2 horas
+        : Column(
             children: [
+              _buildBriefingBox(), // Tu diseño se mantiene intacto
               
-              // 1. El cuadro de información (Altura fija, no da problemas)
-              _buildBriefingBox(),
-
-              // 2. La lista (¡ENVUELTA EN EXPANDED!)
-              // Expanded obliga al ListView a ocupar SOLO el espacio que sobra,
-              // evitando que se vuelva infinito y congele la app.
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.only(
                     left: 16.0,
                     right: 16.0,
                     bottom: 100.0,
-                    ),
+                  ),
                   itemCount: listaAsteroides.length,
                   itemBuilder: (context, index) {
                     final asteroide = listaAsteroides[index];
@@ -77,8 +55,17 @@ class _ThreatRadarScreenState extends State<ThreatRadarScreen> {
                 ),
               ),
             ],
-          );
-        },
+          ),
+    );
+  }
+
+  // Un pequeño toque extra por si el radar está vacío
+  Widget _buildEmptySector() {
+    return const Center(
+      child: Text(
+        'CHOCO SECTOR DESPEJADO\nNo hay amenazas en las próximas 5 horas.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold),
       ),
     );
   }

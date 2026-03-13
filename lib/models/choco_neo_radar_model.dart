@@ -36,6 +36,7 @@ class Asteroid {
   final String velocidadKmh;
   final String distanciaKm;
   final String fechaAproximacion;
+  final int epochDate; // ⏱️ El tiempo exacto que nos da la NASA
 
   Asteroid({
     required this.id,
@@ -45,9 +46,11 @@ class Asteroid {
     required this.velocidadKmh,
     required this.distanciaKm,
     required this.fechaAproximacion,
+    required this.epochDate,
   });
 
   factory Asteroid.fromJson(Map<String, dynamic> json) {
+    
     // La NASA manda un arreglo de acercamientos, tomamos el primero [0]
     final closeApproach = json["close_approach_data"][0];
 
@@ -60,6 +63,7 @@ class Asteroid {
       velocidadKmh: closeApproach["relative_velocity"]["kilometers_per_hour"],
       distanciaKm: closeApproach["miss_distance"]["kilometers"],
       fechaAproximacion: closeApproach["close_approach_date_full"],
+      epochDate: closeApproach["epoch_date_close_approach"],
     );
   }
 }

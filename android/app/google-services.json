@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "530542708937",
+    "project_id": "choco-universe-26",
+    "storage_bucket": "choco-universe-26.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530542708937:android:8141ad911f41f957b72518",
+        "android_client_info": {
+          "package_name": "com.choco.universe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoUwmsoxfD7xeuBbZSgo8pPVH4erprA04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

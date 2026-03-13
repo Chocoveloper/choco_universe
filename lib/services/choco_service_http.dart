@@ -130,6 +130,20 @@ Future<NeoRadarResponse?> getNeoRadarInfoDio() async {
 
       debugPrint('Asteroides a la vista ${response.statusCode} ${response.statusMessage}');
 
+    // 🕵️‍♂️ EL RECORRIDO (Para ver qué hay dentro de verdad)
+  // Como NeoRadarResponse tiene una lista de asteroides, vamos a ver los primeros 3:
+  for (var i = 0; i < neoRadar.asteroides.length; i++) {
+    final asteroide = neoRadar.asteroides[i];
+    debugPrint('--- Asteroide #${i + 1} ---');
+    debugPrint('Nombre: ${asteroide.name}');
+    debugPrint('¿Es Peligroso?: ${asteroide.esPeligroso ? "SÍ 🚨" : "No ✅"}');
+    debugPrint('Fecha Aproximación: ${asteroide.fechaAproximacion}');
+    debugPrint('-----------------------');
+    
+    if (i == 2) break; // Solo imprimimos 3 para no saturar la consola
+  }
+
+      //debugPrint(neoRadar); No he logrado imprimir cuanod le doy neaRdar. No me sale nada (Las sugerencias)
       return neoRadar;
     }else{
       debugPrint('Jum, ¡Déjà vu! ${response.statusCode}');
@@ -143,3 +157,110 @@ Future<NeoRadarResponse?> getNeoRadarInfoDio() async {
 
   }
 }
+/*
+
+import 'package:choco_universe/models/choco_imagen_deldia_model.dart';
+import 'package:choco_universe/models/choco_systeme_solaire_model.dart';
+import 'package:choco_universe/models/choco_neo_radar_model.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+
+// 🔑 COORDENADAS DE ACCESO (Centralizamos la llave para no repetir)
+const String _nasaApiKey = 'R7btzQoaCKF2L7SCvoygpdvA9VgxYatrc4KwnIB4';
+// 📡 SONDA DE COMUNICACIÓN ÚNICA (Ahorra memoria)
+final _dio = Dio();
+
+// -------------------------------------------------------------------
+// 🎒 FUNCIÓN DE PRÁCTICA (Mantenida por petición del Comandante)
+// -------------------------------------------------------------------
+Future<ImagenDelDia?> getImageDay() async {
+  final url = Uri.parse('https://api.nasa.gov/planetary/apod?api_key=$_nasaApiKey');
+  try {
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final body = imagenDelDiaFromJson(response.body);
+      return body;
+    } else {
+      debugPrint('No fue posible obtener la imagen ${response.statusCode}');
+      return null;
+    }
+  } catch (error) {
+    debugPrint('Houston tenemos problemas: $error');
+    return null;
+  }
+}
+
+// -------------------------------------------------------------------
+// 🔭 SERVICIOS DIO (Producción Choco-Prime)
+// -------------------------------------------------------------------
+
+Future<ImagenDelDia?> getImageDayDio() async {
+  try {
+    final response = await _dio.get(
+      'https://api.nasa.gov/planetary/apod?api_key=$_nasaApiKey',
+      options: Options(validateStatus: (status) => (status ?? 0) < 600), // Maneja hasta errores 500
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint('Planeta a la vista ${response.statusCode}');
+      return ImagenDelDia.fromJson(response.data);
+    } else {
+      // Este es el mensaje que vio el Comandante hoy debido al error 500 de la NASA
+      debugPrint('6 horas, 1 minuto, ascensión derecha... ¡No hay cuerpos! ${response.statusCode}');
+      return null;
+    }
+  } catch (e) {
+    debugPrint('Houston, ¡tenemos un problema con la imagen! $e');
+    return null;
+  }
+}
+
+Future<SystemeSolaire?> getPlanetsDio() async {
+  const token = 'ba761a75-2cd5-467f-9c90-2937b358e257';
+  try {
+    final response = await _dio.get(
+      'https://api.le-systeme-solaire.net/rest/bodies?filter[]=bodyType,eq,Planet',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+
+    if (response.statusCode == 200) {
+      final systemSolaire = SystemeSolaire.fromJson(response.data);
+      // 🚀 Ordenamos por distancia al sol para un viaje lógico
+      systemSolaire.bodies.sort((a, b) => a.semimajorAxis.compareTo(b.semimajorAxis));
+      return systemSolaire;
+    } else {
+      debugPrint('Error en la cartografía estelar: ${response.statusCode}');
+      return null;
+    }
+  } catch (blackHole) {
+    debugPrint('Caímos en un agujero negro: $blackHole');
+    return null;
+  }
+}
+
+Future<NeoRadarResponse?> getNeoRadarInfoDio() async {
+  final hoy = DateTime.now();
+  // Formateo seguro de fecha YYYY-MM-DD
+  final fechaHoy = "${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}";
+
+  try {
+    final response = await _dio.get(
+      'https://api.nasa.gov/neo/rest/v1/feed?start_date=$fechaHoy&end_date=$fechaHoy&api_key=$_nasaApiKey',
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint('🛰️ [RADAR] Asteroides detectados con éxito.');
+      return NeoRadarResponse.fromJson(response.data);
+    } else {
+      debugPrint('🚨 [RADAR] Jump, ¡Déjà vu! Error ${response.statusCode}');
+      return null;
+    }
+  } catch (e) {
+    debugPrint('🚨 [RADAR] Trinity auxilio! $e');
+    return null;
+  }
+}
+
+
+*/
