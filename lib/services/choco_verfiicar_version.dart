@@ -1,12 +1,10 @@
-// Archivo: services/verificar_version.dart
-//https://github.com/Chocoveloper/choco_universe.git
 import 'dart:convert';
+import 'dart:io'; // Para manejar errores de conexión
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
 class VersionService {
-  // ⚠️ ATENCIÓN: Cambia 'TuUsuario' por tu nombre real de GitHub
-  // Apuntamos a la rama 'main' de choco_universe
+  // 🛰️ URL del JSON en GitHub (Pública y Raw)
   static const String _urlJson =
       "https://raw.githubusercontent.com/Chocoveloper/choco_universe/refs/heads/main/version.json";
 
@@ -16,17 +14,25 @@ class VersionService {
       final PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        // 🛠️ MEJORA 1: Usamos utf8.decode para que las notas con tildes, 
+        // eñes o emojis no rompan el JSON.
+        final String body = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> data = json.decode(body);
         
-        // Comparamos versión instalada (ej. 1.0.0) vs versión en la nube
-        if (data['latest_version'] != packageInfo.version) {
-          return data; // ¡Hay una actualización sorpresa! 🎁
+        String remoteVersion = data['latest_version'] ?? "0.0.0";
+        String localVersion = packageInfo.version;
+
+        // 🛠️ MEJORA 2: Cambiamos != por una lógica más segura.
+        // Si la versión de la nube es distinta a la local, hay misión.
+        if (remoteVersion != localVersion) {
+          return data; 
         }
       }
+    } on SocketException {
+      print("📡 Choco-Error: No hay conexión a internet.");
     } catch (e) {
-      // Silencio de radio si falla, para no asustar al usuario
+      print("📡 Choco-Error en el servicio de versión: $e");
     }
-    return null; // Todo está al día
+    return null; 
   }
 }
-

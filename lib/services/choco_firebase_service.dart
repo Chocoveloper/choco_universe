@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/choco_pluto_backup_model.dart'; // Asegúrate de que la ruta sea correcta
 
 class ChocoFirebaseService {
@@ -22,7 +23,7 @@ class ChocoFirebaseService {
       return null;
     } catch (e) {
       // Si incluso Firebase falla (tormenta solar extrema), devolvemos null
-      print('❌ [FIREBASE ERROR]: $e');
+      debugPrint('❌ [FIREBASE ERROR]: $e');
       return null;
     }
   }

@@ -87,7 +87,7 @@ class _ChocoShowPlanetsWidgetState extends State<ChocoShowPlanetsWidget> {
             ],
           ),
         ),
-        const SizedBox(height: 4.0),
+        const SizedBox(height: 1.0),
         // 📝 El Nombre (Pequeñito para que quepa en la órbita)
         Text(
           _traducirPlaneta(widget.planets!.englishName),

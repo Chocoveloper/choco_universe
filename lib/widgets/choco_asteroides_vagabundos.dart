@@ -140,7 +140,7 @@ class _AsteroidesVagabundosState extends State<AsteroidesVagabundos> with Single
     // 🧠 Lógica del Camaleón 3D
     if (_estaEscaneando) {
       rutaImagen = 'assets/images/planetas/satelite_purpura.png';
-      textoAlerta = "ESCANEANDO SECTOR...";
+      textoAlerta = "Choco-Escano...";
       colorTexto = const Color.fromARGB(255, 126, 92, 184); // Morado
     } else {
       if (_nivelAlerta == 2) {
@@ -159,8 +159,8 @@ class _AsteroidesVagabundosState extends State<AsteroidesVagabundos> with Single
     }
 
     return Positioned(
-      bottom: -40,
-      left: -1,
+      top: -35,
+      left: 25,
       child: GestureDetector(
         onTap: () async {
           // Vamos al radar
@@ -221,7 +221,7 @@ class _AsteroidesVagabundosState extends State<AsteroidesVagabundos> with Single
             Transform.translate(
               offset:const Offset(0, -29), // <--- LA MAGIA: El -15 empuja el texto hacia arriba
               child: Container(
-                width: 132.0,
+                width: 130.0,
                 margin: const EdgeInsets.only(right: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
@@ -230,6 +230,7 @@ class _AsteroidesVagabundosState extends State<AsteroidesVagabundos> with Single
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
+                  overflow: TextOverflow.ellipsis,
                   textoAlerta,
                   textAlign: TextAlign.center,
                   style: TextStyle(

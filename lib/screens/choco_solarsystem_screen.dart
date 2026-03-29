@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:choco_universe/features/chrocante_panel/presentation/choco_chrocante_habitat.dart';
 import 'dart:math' as math;
 import 'package:choco_universe/models/choco_systeme_solaire_model.dart';
 import 'package:choco_universe/widgets/choco_asteroides_vagabundos.dart';
@@ -7,46 +8,59 @@ import 'package:flutter/material.dart';
 
 class ChocoSolarSystemScreen extends StatefulWidget {
   final SystemeSolaire? planets;
+  final Map<String, Map<String, double>>? mapaGalactico; 
 
-  const ChocoSolarSystemScreen({super.key, this.planets});
+  const ChocoSolarSystemScreen({super.key, this.planets, this.mapaGalactico});
 
   @override
   State<ChocoSolarSystemScreen> createState() => _ChocoSolarSystemScreenState();
 }
 
-//Agregamos este Mixin (SingleTickerProviderStateMixin) que es la licencia para usar animaciones. Es parte de nuestro proceso para hacer que los planetas giren en orbita alrededor del sol
-class _ChocoSolarSystemScreenState extends State<ChocoSolarSystemScreen>
-    with SingleTickerProviderStateMixin {
-  // 2. Declaramos nuestro motor
-  late AnimationController _controladorOrbita;
-
-  // 🎸 Declaramos nuestro motor de audio
+// ⚠️ REGRESAMOS A SINGLE MIXIN: Volvemos a un solo motor para simplificar y optimizar.
+class _ChocoSolarSystemScreenState extends State<ChocoSolarSystemScreen> with SingleTickerProviderStateMixin {
+  
+  // 🌟 EL MOTOR ÚNICO: El pulso rítmico del Universo
+  late AnimationController _controladorPulsoUniverso;
+  
   late AudioPlayer _chocoReproductor;
 
   @override
   void initState() {
     super.initState();
-    // 3. Encendemos el motor: dará una vuelta completa cada 20 segundos
-    _controladorOrbita = AnimationController(
+    
+    // 🚦 Motor Único: Pulso lento cada 3 segundos, va y viene.
+    _controladorPulsoUniverso = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 600),
-    )..repeat(); // repeat() hace que gire infinitamente
+      duration: const Duration(seconds: 2), 
+    ); 
 
-    // 🎶 Encendemos la Choco-Música
+    // 2. 🧠 EL CEREBRO ORGÁNICO: Le enseñamos a hacer pausas
+    _controladorPulsoUniverso.addStatusListener((status) async {
+      if (status == AnimationStatus.completed) {
+        // El Sol acaba de crecer al máximo. 
+        // ⏱️ Pausa de MEDIO SEGUNDO (sosteniendo la respiración) antes de soltar:
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) _controladorPulsoUniverso.reverse(); // Se empieza a encoger
+        
+      } else if (status == AnimationStatus.dismissed) {
+        // El Sol volvió a su tamaño normal.
+        // ⏱️ Pausa LARGA DE 2 SEGUNDOS (descanso) antes del siguiente latido:
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) _controladorPulsoUniverso.forward(); // Vuelve a crecer
+      }
+    });
+
+    // 3. ¡Arrancamos el primer latido manualmente!
+    _controladorPulsoUniverso.forward();
+
     _chocoReproductor = AudioPlayer();
-
-    // Le decimos que se repita infinitamente (Loop) para que nunca haya silencio
     _chocoReproductor.setReleaseMode(ReleaseMode.loop);
-
-    // ¡Que suene la orquesta! (Buscamos en la carpeta assets/audio)
     _chocoReproductor.play(AssetSource('audio/05_choco_inmensity.mp3'));
   }
 
   @override
   void dispose() {
-    // 4. Apagamos el motor si salimos de la pantalla (¡Muy importante para la memoria!)
-    _controladorOrbita.dispose();
-    // 🛑 Apagamos y destruimos el reproductor de audio
+    _controladorPulsoUniverso.dispose(); // Apagamos el motor único.
     _chocoReproductor.dispose();
     super.dispose();
   }
@@ -55,139 +69,153 @@ class _ChocoSolarSystemScreenState extends State<ChocoSolarSystemScreen>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        //Aquí empiezo a implementar el Stack en primer lugar el sol
         SizedBox(
-          height: 520.0, //Esto da altura al Stack para que quepan las orbitas.
+          height: 520.0,
           width: double.infinity,
-          child: AnimatedBuilder(
-            animation: _controladorOrbita,
-            builder: (context, child) {
-              return Stack(
-                clipBehavior: Clip
-                    .none, // ✂️ PROHIBIDO RECORTAR: Los planetas pueden salirse del contenedor
-                alignment: Alignment.center, // El centro es el origen (0.0)
-                children: [
-
-                 // 🥛 LAS ESTRELLAS DE LECHE (Fondo profundo)
-                   CustomPaint(
-                    painter: ChocoEstrellasPainter(),
-                  ),
-
-                  // ⭕ LAS ÓRBITAS HOLOGRÁFICAS (En el fondo absoluto)
-                  if (widget.planets != null)
-                    CustomPaint(
-                      painter: ChocoOrbitPainter(
-                        cantidadPlanetas: widget.planets!.bodies.length,
-                      ),
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              
+              // 1. 🌟 FONDO ANIMADO: ESTRELLAS TITILANTES
+              AnimatedBuilder(
+                animation: _controladorPulsoUniverso,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: ChocoEstrellasPainter(
+                      animacionValue: _controladorPulsoUniverso.value,
                     ),
-                  // ✨ LA CORONA SOLAR (Luz de fondo)
-                  // Este contenedor es gigante pero casi transparente, creando el brillo
-                  Container(
-                    width: 350.0,
-                    height: 350.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          // Centro brillante (Color caramelo/sol con 30% de opacidad)
-                          const Color(0xFFCD7F32).withValues(alpha: 0.3),
-                          // Borde invisible (0% opacidad) para que se difumine con el espacio
-                          const Color(0xFFCD7F32).withValues(alpha: 0.0),
-                        ],
-                        stops: const [
-                          0.1,
-                          1.0,
-                        ], // El brillo se concentra en el centro y se desvanece suavemente
-                      ),
-                    ),
+                  );
+                },
+              ),
+              
+              // 2. ÓRBITAS VISUALES FIJAS
+              if (widget.planets != null)
+                CustomPaint(
+                  painter: ChocoOrbitPainter(
+                    cantidadPlanetas: widget.planets!.bodies.length,
                   ),
+                ),
 
-                  // Aqui va el sol (Al estar centrado, se queda en el medio)
-                  Container(
-                    height: 100.0,
-                    width: 100.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const RadialGradient(
-                        colors: [
-                          Color(0xFFFFF3E0), // Brillo central
-                          Color(0xFFCD7F32), // Caramelo
-                          Color(0xFF4E2A14), // Chocolate profundo
-                        ],
-                        stops: [0.2, 0.6, 1.0],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFCD7F32).withValues(alpha: 0.6),
-                          blurRadius: 40,
-                          spreadRadius: 10,
-                        ),
-                      ],
+              // 3. ☀️ EL SOL REAL, AMARILLO Y RESPLANDECIENTE (Pulsando)
+              AnimatedBuilder(
+                animation: _controladorPulsoUniverso,
+                builder: (context, child) {
+                  return _buildSolPulsante();
+                },
+              ),
+
+              // 4. LOS PLANETAS EN POSICIÓN REAL
+              ..._buildPlanetasReales(),
+
+              ChocoChrocanteHabitat(planets: widget.planets),
+              
+              Positioned(
+                bottom: -47, 
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 80, 
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.black, Color(0xFF0B0D17)],
                     ),
                   ),
-
-                  //Mostramos nuestros planetas orbitando
-                  if (widget.planets != null)
-                    // Usamos asMap() para obtener el índice (0, 1, 2...) y separarlos
-                    ...widget.planets!.bodies.asMap().entries.map((entry) {
-                      final int index = entry.key; // Número de planeta
-                      final planeta = entry.value; // Datos del planeta
-
-                      // 1. Radio: Distancia desde el centro (El sol). Cada planeta se aleja 25.0 más.
-                      final double radio = 70.0 + (index * 25.0);
-
-                      // 🧮 CHOCO-MATEMÁTICAS EN MOVIEMINTO:
-
-                      final double anguloBase = index * (math.pi / 4.0);
-                      // Sumamos el valor del motor (de 0 a 1) multiplicado por 2*Pi (360 grados)
-
-                      // 🚀 TERCERA LEY DE CHOCO-KEPLER (Ajuste Visual Definitivo):
-                      // Le damos a los planetas interiores muchísimas vueltas para que visualmente
-                      // corran más rápido en sus pistas pequeñas.
-                      const List<double> vueltasPorPlaneta = [
-                        20.0,
-                        14.0,
-                        10.0,
-                        8.0,
-                        6.0,
-                        4.0,
-                        2.0,
-                        1.0,
-                      ];
-                      // Tomamos las vueltas correspondientes según la posición del planeta (0 a 7)
-                      final double velocidadOrbital = vueltasPorPlaneta[index];
-
-                      final double anguloAnimado =
-                          anguloBase +
-                          (_controladorOrbita.value *
-                              2 *
-                              math.pi *
-                              velocidadOrbital);
-                      // 3. Posición X, Y en el círculo
-                      final double x = radio * math.cos(anguloAnimado);
-                      final double y = radio * math.sin(anguloAnimado);
-
-                      // Transform.translate mueve el widget desde el centro hacia X, Y
-                      return Transform.translate(
-                        offset: Offset(x, y),
-                        child: ChocoShowPlanetsWidget(planets: planeta),
-                      );
-                    }),
-
-                  // ☄️ EL ASTEROIDE INTERACTIVO (Botón gamificado hacia el Radar)
-                 const AsteroidesVagabundos(),
-                ],
-              );
-            },
+                ),
+              ),
+              const AsteroidesVagabundos(), 
+            ],
           ),
         ),
       ],
     );
   }
+
+  // ☀️ EL SOL RESPLANDECIENTE: Majestuoso, resplandeciente y pulsando con la vida del Universo.
+  // ☀️ EL SOL RESPLANDECIENTE (Ahora con Latido Real)
+  Widget _buildSolPulsante() {
+    
+    // 🪄 1. MAGIA DE ESCALA: El Sol crecerá un 5% y volverá a su tamaño (de 1.0 a 1.05)
+    final double latidoEscala = 1.0 + (_controladorPulsoUniverso.value * 0.05);
+
+    // 🪄 2. MAGIA DE LUZ: La intensidad del aura naranja irá de 0.2 (suave) a 0.6 (fuerte)
+    final double intensidadAura = 0.2 + (_controladorPulsoUniverso.value * 0.3);
+
+    return Transform.scale(
+      scale: latidoEscala, // 👈 ¡Esto es lo que hará que el Sol "respire"!
+      child: Container(
+        height: 110.0, 
+        width: 110.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            // El núcleo de luz brillante (Amarillo)
+            BoxShadow(
+              color: const Color(0xFFFFD54F).withValues(alpha: 0.6), 
+              blurRadius: 100,
+              spreadRadius: 10, // Un poco más contenido en el centro
+            ),
+            // 🌅 Su "Aura de Zona Habitable" (Naranja) que ahora cambia de intensidad
+            BoxShadow(
+              color: const Color(0xFFFF8F00).withValues(alpha: intensidadAura), // 👈 ¡PULSO DE LUZ!
+              blurRadius: 80, 
+              spreadRadius: 80, // Su toque maestro para iluminar los planetas cercanos
+            ),
+          ],
+        ),
+        child: ClipOval(
+          child: Image.asset(
+            'assets/images/planetas/sol.png', 
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildPlanetasReales() {
+    if (widget.planets == null || widget.mapaGalactico == null) return [];
+
+    return widget.planets!.bodies.asMap().entries.map((entry) {
+      final int index = entry.key;
+      final planeta = entry.value;
+      
+      final double radioVisual = 70.0 + (index * 25.0); 
+
+      String llavePlaneta = planeta.englishName;
+      if (llavePlaneta == 'Mercury') llavePlaneta = 'Mercurio';
+      if (llavePlaneta == 'Earth') llavePlaneta = 'Tierra';
+      if (llavePlaneta == 'Mars') llavePlaneta = 'Marte';
+      if (llavePlaneta == 'Uranus') llavePlaneta = 'Urano';
+      if (llavePlaneta == 'Neptune') llavePlaneta = 'Neptuno';
+      
+      final datosNasa = widget.mapaGalactico?[llavePlaneta];
+
+      double anguloReal = 0.0;
+
+      if (datosNasa != null) {
+        anguloReal = math.atan2(datosNasa['y']!, datosNasa['x']!);
+      } else {
+         anguloReal = index * (math.pi / 4.0);
+      }
+
+      final double x = radioVisual * math.cos(anguloReal);
+      final double y = radioVisual * math.sin(anguloReal);
+
+      return Transform.translate(
+        offset: Offset(x, y),
+        child: ChocoShowPlanetsWidget(planets: planeta),
+      );
+    }).toList();
+  }
 }
 
+// ------------------------------------------------------------------
+// 🎨 LOS PINTORES QUE SE MANTIENEN EN EL HIPERESPACIO
+// ------------------------------------------------------------------
 
-// 🎨 NUESTRO PINCEL ESTELAR: Dibuja las órbitas en el fondo
 class ChocoOrbitPainter extends CustomPainter {
   final int cantidadPlanetas;
 
@@ -195,54 +223,54 @@ class ChocoOrbitPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Definimos cómo será la línea (Color caramelo, muy transparente, delgada)
     final paint = Paint()
-      ..color = const Color(0xFFCD7F32).withValues(alpha: 0.2) // 20% de opacidad
-      ..style = PaintingStyle.stroke // Solo el borde, no relleno
-      ..strokeWidth = 1.0; // Línea súper fina de alta tecnología
+      ..color = const Color(0xFFCD7F32).withValues(alpha: 0.2) 
+      ..style = PaintingStyle.stroke 
+      ..strokeWidth = 1.0; 
 
-    // Como nuestro Stack está centrado, el origen de todo es exactamente (0,0)
     const centro = Offset(0, 0);
 
-    // Dibujamos un círculo perfecto por cada planeta usando tu misma fórmula matemática
     for (int i = 0; i < cantidadPlanetas; i++) {
       final double radio = 70.0 + (i * 25.0);
       canvas.drawCircle(centro, radio, paint);
     }
   }
 
-  // Esto le dice a Flutter que no necesita redibujar las órbitas en cada frame de la animación, ahorrando muchísima RAM
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// 🥛 NUESTRO PINCEL LECHERO: Dibuja las estrellas de fondo
+// 🌟 PINTOR DE ESTRELLAS TITILANTES
 class ChocoEstrellasPainter extends CustomPainter {
+  final double animacionValue; 
+
+  ChocoEstrellasPainter({required this.animacionValue});
+
   @override
   void paint(Canvas canvas, Size size) {
-    // Usamos el número 88 como semilla (¡En honor a tus 88 Choco-Constelaciones!)
-    // Esto asegura que las estrellas salgan al azar, pero siempre en el mismo lugar
     final random = math.Random(88); 
     final paint = Paint();
 
-    // Dibujamos 150 gotitas de leche
     for (int i = 0; i < 150; i++) {
-      // Repartimos las estrellas por todo el lienzo del Stack
-      // Como el centro es (0,0), vamos desde -200 hasta +200 en X, y -260 a +260 en Y
       final double x = random.nextDouble() * 400 - 200;
       final double y = random.nextDouble() * 520 - 260;
-      
-      // Tamaños aleatorios (algunas lejanas, otras más cerca)
       final double radio = random.nextDouble() * 1.5 + 0.5;
-      
-      // Opacidad aleatoria para darle profundidad (brillo) al espacio
-      paint.color = Colors.white.withValues(alpha: random.nextDouble() * 0.7 + 0.1);
 
-      // ¡Salpicamos la gota en el lienzo!
+      final baseAlpha = random.nextDouble() * 0.5; 
+      double brillo = baseAlpha + (animacionValue * 0.5);
+      
+      if (i % 2 == 0) {
+         brillo = baseAlpha + ((1.0 - animacionValue) * 0.5);
+      }
+
+      paint.color = Colors.white.withValues(alpha: brillo.clamp(0.1, 1.0));
+
       canvas.drawCircle(Offset(x, y), radio, paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant ChocoEstrellasPainter oldDelegate) {
+    return oldDelegate.animacionValue != animacionValue;
+  }
 }

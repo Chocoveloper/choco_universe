@@ -4,14 +4,15 @@ import 'package:choco_universe/models/choco_systeme_solaire_model.dart';
 import 'package:choco_universe/screens/choco_page_view_screen.dart';
 import 'package:choco_universe/screens/choco_solarsystem_screen.dart';
 import 'package:choco_universe/services/choco_verfiicar_version.dart';
-import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/material.dart';// 🚀 ¡Imprescindible para el salto!
 import 'package:lottie/lottie.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChocoHomeUniverse extends StatefulWidget {
   final ImagenDelDia? image;
   final SystemeSolaire? planets;
-  const ChocoHomeUniverse({super.key, required this.image, this.planets});
+  final Map<String, Map<String, double>>? mapaGalactico;
+  const ChocoHomeUniverse({super.key, required this.image, this.planets, this.mapaGalactico});
 
   @override
   State<ChocoHomeUniverse> createState() => _ChocoHomeUniverseState();
@@ -93,32 +94,56 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
               ),
             ),
             // Botón de "Actualizar"
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFCD7F32), // Color Caramelo
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                // 🚀 Aquí en el futuro puedes poner el código (url_launcher)
-                // para que la lleve al link de descarga (data['update_url']).
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Iniciando secuencia de hiperespacio... 🚀'),
-                    backgroundColor: Color(0xFFCD7F32),
-                  ),
-                );
-              },
-              child: const Text(
-                'Actualizar Ahora',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            // Botón de "Actualizar"
+ElevatedButton(
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFFCD7F32), // Color Caramelo
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  onPressed: () async { // 🛠️ Añadimos async
+    final String? updateUrl = data['update_url'];
+
+    if (updateUrl != null && updateUrl.isNotEmpty) {
+      final Uri uri = Uri.parse(updateUrl);
+      
+      try {
+        // 🛰️ INTENTO DE SALTO AL HIPERESPACIO
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // OBLIGATORIO para Android 11+
+        );
+        
+        // Cerramos el diálogo después de lanzar el link
+        if (context.mounted) Navigator.pop(context);
+        
+      } catch (e) {
+        // ⚠️ PLAN B: Si el motor falla, avisamos al usuario
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error en el motor de salto: $e'),
+              backgroundColor: Colors.redAccent,
             ),
+          );
+        }
+      }
+    } else {
+      // Si por alguna razón la URL no llegó en el JSON
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Coordenadas de actualización no encontradas.')),
+      );
+    }
+  },
+  child: const Text(
+    'Actualizar Ahora',
+    style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
           ],
         );
       },
@@ -237,10 +262,10 @@ class _ChocoHomeUniverseState extends State<ChocoHomeUniverse> {
             ),
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: ChocoSolarSystemScreen(planets: widget.planets),
-            ),
+            child: ChocoSolarSystemScreen(
+              planets: widget.planets,
+              mapaGalactico: widget.mapaGalactico,
+              ),
           ),
         ],
       ),
