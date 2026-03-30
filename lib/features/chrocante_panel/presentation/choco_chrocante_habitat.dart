@@ -1,18 +1,162 @@
-import 'dart:ui'; // 👈 ¡NUEVO! Necesario para el efecto de cristal esmerilado
+import 'chocoscopio_choconauta_screen.dart';
+import 'dart:ui'; 
 import 'package:choco_universe/features/chrocante_panel/presentation/chocoscopio_page_view_screen.dart';
 import 'package:choco_universe/models/choco_systeme_solaire_model.dart';
 import 'package:choco_universe/provider/choco_chrocante_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ChocoChrocanteHabitat extends StatelessWidget {
+// 🚀 IMPORTAMOS EL HOLOGRAMA (Asegúrese de que la ruta sea correcta)
+import 'chocoscopio_welcome_overlay.dart'; 
 
+// 🔄 Lo convertimos a StatefulWidget para que recuerde los 7 toques
+class ChocoChrocanteHabitat extends StatefulWidget {
   final SystemeSolaire? planets;
-  ChocoChrocanteHabitat({super.key, this.planets});
+  const ChocoChrocanteHabitat({super.key, this.planets});
+
+  @override
+  State<ChocoChrocanteHabitat> createState() => _ChocoChrocanteHabitatState();
+}
+
+class _ChocoChrocanteHabitatState extends State<ChocoChrocanteHabitat> {
+  // 🛡️ VARIABLES TÁCTICAS PARA EL CREADOR
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+  bool _dialogAbierto = false;
+
+  // 🌟 VARIABLE PARA EL SALUDO INICIAL (Static para que solo lo haga 1 vez por sesión)
+  static bool _yaSalude = false;
+
+  // 👑 NUEVA VARIABLE: GUARDA SI USTED ES EL CREADOR AUTENTICADO
+  bool _soyElCreador = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 🚀 PROTOCOLO DE DESPERTAR AUTOMÁTICO
+    if (!_yaSalude) {
+      // Usamos addPostFrameCallback para esperar a que la pantalla termine de cargar
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _lanzarHologramaBienvenida(isCreator: false); // Lanza el saludo estándar
+        _yaSalude = true; // Marcamos que ya saludó
+      });
+    }
+  }
+
+  // 🕵️‍♂️ EL PROTOCOLO DE RECONOCIMIENTO (Ahora en Ajustes)
+  void _onAjustesTapped() {
+    if (_dialogAbierto) return; 
+
+    final now = DateTime.now();
+    
+    // Si es el primer toque o pasaron más de 800ms, reiniciamos el contador
+    if (_lastTapTime == null || now.difference(_lastTapTime!).inMilliseconds > 800) {
+      _tapCount = 1;
+    } else {
+      _tapCount++;
+    }
+    
+    _lastTapTime = now;
+
+    // ¡SI LLEGAMOS A 7 TOQUES!
+    if (_tapCount >= 7) {
+      _tapCount = 0;
+      _showPasswordInput(); 
+    }
+  }
+
+  // 🔑 EL PANEL SECRETO DE AUTENTICACIÓN
+  void _showPasswordInput() {
+    setState(() {
+      _dialogAbierto = true; 
+    });
+
+    String password = '';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (context) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), 
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF0B0D17),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFFCD7F32), width: 1.5),
+            ),
+            title: const Text(
+              'AUTENTICACIÓN DE PROTOCOLO PRIMARIO',
+              style: TextStyle(color: Color(0xFFCD7F32), fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            content: TextField(
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Ingrese Palabra Clave, Creador...',
+                hintStyle: TextStyle(color: Colors.white24),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFCD7F32))),
+              ),
+              onChanged: (value) => password = value,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
+              ),
+              TextButton(
+                onPressed: () {
+                  if (password == 'DumbleDinhoPrime') {
+                    Navigator.pop(context); 
+                    
+                    // 🎉 ¡CONTRASEÑA CORRECTA! 
+                    setState(() {
+                      _soyElCreador = true; // 👈 ¡AHORA LA NAVE SABE QUIÉN ES USTED!
+                    });
+                    // 🎉 ¡CONTRASEÑA CORRECTA! Lanzamos a Chrocante en Modo Creador
+                    _lanzarHologramaBienvenida(isCreator: true);
+
+                  } else {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Código Incorrecto. Protocolo denegado.'),
+                      backgroundColor: Colors.redAccent,
+                    ));
+                  }
+                },
+                child: const Text('AUTENTICAR', style: TextStyle(color: Color(0xFFCD7F32))),
+              ),
+            ],
+          ),
+        );
+      },
+    ).then((_) {
+      setState(() {
+        _dialogAbierto = false; 
+      });
+    });
+  }
+
+  // 🤖 LANZADOR DEL HOLOGRAMA (Limpio y directo)
+  void _lanzarHologramaBienvenida({required bool isCreator}) {
+    showGeneralDialog(
+      context: context,
+      barrierColor: Colors.transparent, 
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return ChocosCopioWelcomeOverlay(
+          // Le pasamos el estado directamente al holograma
+          isCreatorMode: isCreator,
+          onDismissed: () {
+            Navigator.pop(context); 
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Escuchamos al cerebro
     final chrocanteProvider = context.watch<ChocoChrocanteProvider>();
 
     return AnimatedPositioned(
@@ -23,13 +167,10 @@ class ChocoChrocanteHabitat extends StatelessWidget {
       child: GestureDetector(
         onTap: () => chrocanteProvider.togglePanel(),
         child: Column(
-          // Alineamos a la derecha para que la píldora crezca hacia la izquierda (hacia el centro del mapa)
           crossAxisAlignment: CrossAxisAlignment.end, 
           children: [
-            // 🌟 EL NUEVO PANEL HOLOGRÁFICO
             if (chrocanteProvider.isExpanded) _buildPanelHolografico(context),
             const SizedBox(height: 10),
-            // 🐒 NUESTRO CAPITÁN
             Image.asset(
               'assets/images/planetas/chrocante4.png', 
               width: 120,
@@ -40,72 +181,75 @@ class ChocoChrocanteHabitat extends StatelessWidget {
     );
   }
 
-  // 🎛️ EL PANEL DE CRISTAL (Glassmorphism)
   Widget _buildPanelHolografico(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(30.0), // Forma de píldora
+      borderRadius: BorderRadius.circular(30.0), 
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0), // Efecto de cristal borroso
+        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0), 
         child: Container(
-          height: 85, // Altura súper compacta para no tapar el mapa
-          width: 260, // Ancho para que quepan las tarjetas y se pueda hacer scroll
+          height: 85, 
+          width: 260, 
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B0D17).withValues(alpha: 0.6), // Fondo espacial oscuro y transparente
+            color: const Color(0xFF0B0D17).withValues(alpha: 0.6), 
             borderRadius: BorderRadius.circular(30.0),
             border: Border.all(
-              color: const Color(0xFFCD7F32).withValues(alpha: 0.5), // Borde Caramelo/Bronce
+              color: const Color(0xFFCD7F32).withValues(alpha: 0.5), 
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFCD7F32).withValues(alpha: 0.1), // Resplandor súper sutil
+                color: const Color(0xFFCD7F32).withValues(alpha: 0.1), 
                 blurRadius: 20,
                 spreadRadius: 1,
               )
             ]
           ),
-          // 🚀 EL CARRUSEL HORIZONTAL
           child: ListView(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(), // Efecto de rebote al llegar al final (estilo iOS)
+            physics: const BouncingScrollPhysics(), 
             children: [
-              // 🃏 TARJETA 1: CHOCOSCOPIO (¡Lista para despegar!)
-              // 🃏 TARJETA 1: CHOCOSCOPIO (¡Lista para despegar!)
+              // 🃏 TARJETA 1: CHOCOSCOPIO (¡Ahora sí, solo va al Mapa!)
               _buildTarjetaHolografica(
                 icon: Icons.travel_explore, 
                 titulo: 'Visor 3D',
                 isActiva: true,
                 onTap: () {
-                  // 🚀 1. Leemos los planetas directamente del cerebro (Provider) aquí mismo
-                  //final planetasGuardados = context.read<ChocoChrocanteProvider>().planetasGuardados;
-
-                  // 🚀 2. SALTO AL HIPERESPACIO
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ChocosCopioPageViewScreen(planets: planets), 
+                      builder: (context) => ChocosCopioPageViewScreen(planets: widget.planets), 
                     ),
                   );
                 },
               ),
-              // 🃏 TARJETA 2: RADAR (Bloqueada)
+              //TARJETA 2: CHAT CHOCO-NAUTA
+
               _buildTarjetaHolografica(
-                icon: Icons.radar,
-                titulo: 'Radar',
-                isActiva: false,
+                icon: Icons.chat_bubble_outline, // 👈 Ícono de chat
+                titulo: 'Choco-Nauta',
+                isActiva: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      // 🚀 PÁSELE EL ESTADO DEL CREADOR
+                      builder: (context) => ChocoscopioChoconautaScreen(
+                        isCreatorMode: _soyElCreador, // ¡O use una variable de estado que certifique que es usted!
+                      ),
+                    ),
+                  );
+                },
               ),
-              // 🃏 TARJETA 3: ENCICLOPEDIA (Bloqueada)
-              _buildTarjetaHolografica(
-                icon: Icons.menu_book,
-                titulo: 'Bitácora',
-                isActiva: false,
-              ),
-               // 🃏 TARJETA 4: CONFIGURACIÓN (Bloqueada - Solo para mostrar el Scroll)
+              _buildTarjetaHolografica(icon: Icons.menu_book, titulo: 'Bitácora', isActiva: false),
+              
+              // 🛡️ TARJETA 4: AJUSTES (¡EL BÚNKER SECRETO!)
               _buildTarjetaHolografica(
                 icon: Icons.settings,
                 titulo: 'Ajustes',
-                isActiva: false,
+                isActiva: true, // 👈 La activamos "falsamente" para que reciba toques
+                esSecreta: true, // 👈 Pero le dejamos el candadito visual
+                onTap: _onAjustesTapped, // 👈 Aquí inyectamos los 7 toques
               ),
             ],
           ),
@@ -114,28 +258,25 @@ class ChocoChrocanteHabitat extends StatelessWidget {
     );
   }
 
-  // 🃏 MOLDE PARA LAS TARJETAS COMPACTAS (Squircles)
   Widget _buildTarjetaHolografica({
     required IconData icon,
     required String titulo,
     required bool isActiva,
+    bool esSecreta = false, // 👈 Nuevo parámetro para dejar el candadito
     VoidCallback? onTap,
   }) {
-    // Si está activa, brilla en bronce. Si no, se ve gris y apagada.
-    final colorBase = isActiva ? const Color(0xFFCD7F32) : Colors.grey.withValues(alpha: 0.4);
+    // Si es secreta, visualmente se ve apagada, pero internamente funciona
+    final colorBase = (isActiva && !esSecreta) ? const Color(0xFFCD7F32) : Colors.grey.withValues(alpha: 0.4);
 
     return GestureDetector(
-      onTap: isActiva ? onTap : () {}, // Si no está activa, no hace nada al tocar
+      onTap: isActiva ? onTap : () {}, 
       child: Container(
-        width: 65, // Cuadrado perfecto
+        width: 65, 
         margin: const EdgeInsets.symmetric(horizontal: 5),
         decoration: BoxDecoration(
-          color: colorBase.withValues(alpha: 0.1), // Fondo muy transparente
-          borderRadius: BorderRadius.circular(18.0), // Bordes redondeados estilo app
-          border: Border.all(
-            color: colorBase.withValues(alpha: 0.4),
-            width: 1.5,
-          ),
+          color: colorBase.withValues(alpha: 0.1), 
+          borderRadius: BorderRadius.circular(18.0), 
+          border: Border.all(color: colorBase.withValues(alpha: 0.4), width: 1.5),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -145,17 +286,13 @@ class ChocoChrocanteHabitat extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Icon(icon, color: colorBase, size: 26),
-                // 🔒 Ponemos un candadito si la tarjeta está inactiva
-                if (!isActiva)
+                // 🔒 Ponemos el candadito si está inactiva O si es la secreta
+                if (!isActiva || esSecreta)
                   Positioned(
-                    right: -5,
-                    top: -5,
+                    right: -5, top: -5,
                     child: Container(
                       padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.black87,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle),
                       child: const Icon(Icons.lock, color: Colors.white54, size: 10),
                     ),
                   ),
@@ -164,14 +301,8 @@ class ChocoChrocanteHabitat extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               titulo,
-              style: TextStyle(
-                color: isActiva ? Colors.white : Colors.white54,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: (isActiva && !esSecreta) ? Colors.white : Colors.white54, fontSize: 10, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
