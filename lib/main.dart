@@ -1,3 +1,5 @@
+import 'package:choco_universe/screens/choco_splash_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:choco_universe/models/choco_imagen_deldia_model.dart';
 import 'package:choco_universe/models/choco_systeme_solaire_model.dart';
@@ -12,15 +14,42 @@ import 'firebase_options.dart'; // 👈 El archivo que acabas de generar
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:math';
+//import 'package:http/http.dart' as http;
+//import 'dart:convert';
 
 //void main() => runApp(const MyApp());
+// 📡 PROTOCOLO DE ESCANEO DE HANGAR
+/*Future<void> escanearModelosDisponibles() async {
+  final apiKey = dotenv.env['GEMINI_API_KEY'];
+  final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models?key=$apiKey');
+
+  try {
+    debugPrint('📡 Iniciando escaneo cuántico de modelos de Google...');
+    final response = await http.get(url);
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      debugPrint('✅ --- MODELOS DISPONIBLES EN SU LLAVE ---');
+      for (var model in data['models']) {
+        // Solo imprimimos el nombre de la nave
+        debugPrint('🚀 Modelo: ${model['name']}');
+      }
+      debugPrint('-----------------------------------------');
+    } else {
+      debugPrint('🚨 Acceso denegado al hangar: ${response.body}');
+    }
+  } catch (e) {
+    debugPrint('🚨 Error en el radar: $e');
+  }
+}*/
 
 void main() async {
   //INYECTAMOS EL BYPASS AQUÍ:
   HttpOverrides.global = ChocoHttpOverrides();
 
   WidgetsFlutterBinding.ensureInitialized();
-
+  await dotenv.load(fileName: ".env");
+  //await escanearModelosDisponibles();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   ImagenDelDia? imagenFinal;
@@ -33,39 +62,45 @@ void main() async {
 
     mapaReal = await ChocoHorizonsService.escanearSistemaSolar();
 
-
     void analizarTelemetria(Map<String, Map<String, double>> mapaReal) {
-  debugPrint('--- 📊 REPORTE DEL CHOCOSCOPIO ---');
-  
-  // Factor de escala: 10 millones de km = 1 pixel
-  const double escalaVuelo = 10000000.0; 
+      debugPrint('--- 📊 REPORTE DEL CHOCOSCOPIO ---');
 
-  mapaReal.forEach((nombre, datos) {
-    final x = datos['x']!;
-    final y = datos['y']!;
-    final vx = datos['vx']!;
-    final vy = datos['vy']!;
+      // Factor de escala: 10 millones de km = 1 pixel
+      const double escalaVuelo = 10000000.0;
 
-    // 1. Calculamos la Distancia Real al Sol (Pitágoras de X e Y)
-    final distanciaAlSolKm = sqrt((x * x) + (y * y));
-    
-    // 2. Calculamos la Posición en Píxeles para la pantalla
-    final pixelX = x / escalaVuelo;
-    final pixelY = y / escalaVuelo;
+      mapaReal.forEach((nombre, datos) {
+        final x = datos['x']!;
+        final y = datos['y']!;
+        final vx = datos['vx']!;
+        final vy = datos['vy']!;
 
-    // 3. Calculamos la Velocidad Absoluta (Pitágoras de VX y VY)
-    final velocidadKmS = sqrt((vx * vx) + (vy * vy));
-    // Y si la queremos en km/h, multiplicamos por 3600 (los segundos en una hora)
-    final velocidadKmH = velocidadKmS * 3600;
+        // 1. Calculamos la Distancia Real al Sol (Pitágoras de X e Y)
+        final distanciaAlSolKm = sqrt((x * x) + (y * y));
 
-    debugPrint('🪐 $nombre:');
-    debugPrint('   📍 Posición en Pantalla: X: ${pixelX.toStringAsFixed(1)} px, Y: ${pixelY.toStringAsFixed(1)} px');
-    debugPrint('   📏 Distancia al Sol: ${(distanciaAlSolKm / 1000000).toStringAsFixed(2)} Millones de km');
-    debugPrint('   ⚡ Velocidad: ${velocidadKmS.toStringAsFixed(2)} km/s (${velocidadKmH.toStringAsFixed(0)} km/h)');
-    debugPrint('-----------------------------------');
-  });
-}
-analizarTelemetria(mapaReal);
+        // 2. Calculamos la Posición en Píxeles para la pantalla
+        final pixelX = x / escalaVuelo;
+        final pixelY = y / escalaVuelo;
+
+        // 3. Calculamos la Velocidad Absoluta (Pitágoras de VX y VY)
+        final velocidadKmS = sqrt((vx * vx) + (vy * vy));
+        // Y si la queremos en km/h, multiplicamos por 3600 (los segundos en una hora)
+        final velocidadKmH = velocidadKmS * 3600;
+
+        debugPrint('🪐 $nombre:');
+        debugPrint(
+          '   📍 Posición en Pantalla: X: ${pixelX.toStringAsFixed(1)} px, Y: ${pixelY.toStringAsFixed(1)} px',
+        );
+        debugPrint(
+          '   📏 Distancia al Sol: ${(distanciaAlSolKm / 1000000).toStringAsFixed(2)} Millones de km',
+        );
+        debugPrint(
+          '   ⚡ Velocidad: ${velocidadKmS.toStringAsFixed(2)} km/s (${velocidadKmH.toStringAsFixed(0)} km/h)',
+        );
+        debugPrint('-----------------------------------');
+      });
+    }
+
+    analizarTelemetria(mapaReal);
 
     imagenFinal = resultados[0] as ImagenDelDia?;
     planetas = resultados[1] as SystemeSolaire?;
@@ -116,10 +151,10 @@ analizarTelemetria(mapaReal);
     ChangeNotifierProvider(
       create: (_) => ChocoChrocanteProvider(),
       child: MyApp(
-        imagenDelDia: imagenFinal, 
+        imagenDelDia: imagenFinal,
         planetas: planetas,
         mapaGalactico: mapaReal,
-        ),
+      ),
     ),
   );
 }
@@ -127,8 +162,14 @@ analizarTelemetria(mapaReal);
 class MyApp extends StatefulWidget {
   final ImagenDelDia? imagenDelDia;
   final SystemeSolaire? planetas;
-  final Map<String, Map<String, double>>? mapaGalactico; // 👈 NUEVO: La maleta de la NASA
-  const MyApp({super.key, this.imagenDelDia, this.planetas, this.mapaGalactico});
+  final Map<String, Map<String, double>>?
+  mapaGalactico; // 👈 NUEVO: La maleta de la NASA
+  const MyApp({
+    super.key,
+    this.imagenDelDia,
+    this.planetas,
+    this.mapaGalactico,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -184,16 +225,30 @@ class _MyAppState extends State<MyApp> {
       title: 'Choco-Universe',
       debugShowCheckedModeBanner: false,
       home: _readyForTakeoff
-          ? ChocoHomeUniverse(
-              image: widget.imagenDelDia,
-              planets: widget.planetas,
-              mapaGalactico: widget.mapaGalactico, // 👈 SIGUE EL VIAJE
+          ? ChocoSplashScreen(
+              imagenDelDia: widget.imagenDelDia,
+              planetas: widget.planetas,
             )
           //Cargamos nuetro SplashScreen
           : Scaffold(
-              backgroundColor: Colors.black,
-              body: Center(
-                child: CircularProgressIndicator(color: Colors.brown),
+              body: Container(
+                // Le ponemos EL MISMO fondo de vainilla, mora y miel
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 1.5,
+                    colors: [
+                      Color(0xFFFFF8DC),
+                      Color(0xFFE0C1B0),
+                      Color(0xFF5A2A6B),
+                    ],
+                    stops: [0.2, 0.5, 1.0],
+                  ),
+                ),
+                child: const Center(
+                  // Un indicador dulce mientras carga Firebase
+                  child: CircularProgressIndicator(color: Color(0xFFCD7F32)),
+                ),
               ),
             ),
     );

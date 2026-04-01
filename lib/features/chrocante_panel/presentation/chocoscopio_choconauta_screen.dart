@@ -1,3 +1,4 @@
+import 'package:choco_universe/services/choco_ai_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'dart:math';
@@ -23,6 +24,7 @@ class ChocoscopioChoconautaScreen extends StatefulWidget {
 class _ChocoscopioChoconautaScreenState extends State<ChocoscopioChoconautaScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ChocoAiService _aiService = ChocoAiService();
   
   final List<ChocoMensaje> _mensajes = [];
   bool _estaPensando = false;
@@ -30,6 +32,9 @@ class _ChocoscopioChoconautaScreenState extends State<ChocoscopioChoconautaScree
   @override
   void initState() {
     super.initState();
+
+    // 🧠 Despertamos a Gemini pasándole su identidad
+    _aiService.iniciarCerebro(isCreatorMode: widget.isCreatorMode);
     // 🤖 Mensaje inicial de bienvenida al abrir el chat
     _mensajes.add(
       ChocoMensaje(
@@ -41,30 +46,24 @@ class _ChocoscopioChoconautaScreenState extends State<ChocoscopioChoconautaScree
     );
   }
 
-  // 🚀 FUNCIÓN PARA ENVIAR MENSAJES (Simulador Temporal)
+  // 🚀 FUNCIÓN PARA ENVIAR MENSAJES GEMINI
   void _enviarMensaje() async {
     final texto = _textController.text.trim();
     if (texto.isEmpty) return;
 
-    // 1. Agregamos su mensaje
     setState(() {
       _mensajes.add(ChocoMensaje(texto: texto, esUsuario: true));
       _textController.clear();
-      _estaPensando = true; // Chrocante empieza a procesar
+      _estaPensando = true; 
     });
     _hacerScrollHaciaAbajo();
 
-    // 2. Simulamos que la IA real está pensando (2 segundos)
-    await Future.delayed(const Duration(seconds: 2));
-
-    // 3. Respuesta simulada (Aquí luego conectaremos a Gemini/ChatGPT)
-    final respuestaSimulada = widget.isCreatorMode 
-        ? "Analizando tu orden, Choco-Padre... ¡Entendido! Todo en el Choco Universe funciona según tus cálculos maestros."
-        : "¡Interesante pregunta! Las estrellas son fascinantes, ¿sabías que en el Choco Universe tenemos un Sol de Miel?";
+    // 🚀 AHORA SÍ, LLAMAMOS AL CEREBRO REAL
+    final respuestaReal = await _aiService.enviarMensaje(texto);
 
     if (mounted) {
       setState(() {
-        _mensajes.add(ChocoMensaje(texto: respuestaSimulada, esUsuario: false));
+        _mensajes.add(ChocoMensaje(texto: respuestaReal, esUsuario: false));
         _estaPensando = false;
       });
       _hacerScrollHaciaAbajo();
@@ -143,7 +142,7 @@ class _ChocoscopioChoconautaScreenState extends State<ChocoscopioChoconautaScree
           ),
           CircleAvatar(
             backgroundColor: const Color(0xFFCD7F32).withValues(alpha: 0.2),
-            backgroundImage: const AssetImage('assets/images/ia/chrocante.png'), // Su imagen
+            backgroundImage: const AssetImage('assets/images/ia/chrocante1.png'), // Su imagen
             radius: 20,
           ),
           const SizedBox(width: 15),
